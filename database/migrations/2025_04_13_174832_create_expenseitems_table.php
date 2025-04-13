@@ -11,14 +11,26 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('expense_items', function (Blueprint $table) {
+        Schema::create('expenseitems', function (Blueprint $table) {
             $table->id();
+
+            /*$table->foreignId('expense_id');
+            $table->index('expense_id', 'expense_idx');
+            $table->foreign('user_id', 'task_user_fk')->on('users')->references('id')
+                ->cascadeOnUpdate()->cascadeOnDelete();*/
+
             $table->foreignId('expense_id')->constrained()->onDelete('cascade');
             $table->string('category');
             $table->integer('quantity');
             $table->decimal('price', 10, 2);
             $table->decimal('total', 10, 2);
             $table->timestamps();
+
+            /*$table->foreignId('user_id');
+            $table->index('user_id', 'task_user_idx');
+            $table->foreign('user_id', 'task_user_fk')->on('users')->references('id')
+                ->cascadeOnUpdate()->cascadeOnDelete();*/
+
         });
     }
 
@@ -27,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('expense_items');
+        Schema::dropIfExists('expenseitems');
     }
 };
