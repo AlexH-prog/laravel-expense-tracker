@@ -13,6 +13,6 @@ class Expense extends Model
 
     public function items()
     {
-        return $this->hasMany(ExpenseItem::class);
+        return $this->hasMany(Expenseitem::class);
     }
 }

@@ -2,16 +2,16 @@
 
 namespace Database\Factories;
 
-use App\Models\ExpenseItem;
+use App\Models\Expenseitem;
 use App\Models\Expense;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ExpenseItem>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Expenseitem>
  */
-class ExpenseItemFactory extends Factory
+class ExpenseitemFactory extends Factory
 {
-    protected $model = ExpenseItem::class;
+    protected $model = Expenseitem::class;
     /**
      * Define the model's default state.
      *
