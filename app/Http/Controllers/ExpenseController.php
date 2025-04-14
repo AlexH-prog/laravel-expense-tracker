@@ -41,8 +41,7 @@ class ExpenseController extends Controller
 
 
         $expense = Auth::user()->expenses()->create([
-     //   if(Auth::user()) {
-            $expense = Auth::user()->expenses()->create([
+
                 'date' => $validated['date'],
                 'comment' => $validated['comment'],
                 'amount' => collect($validated['items'])->sum(fn($item) => $item['quantity'] * $item['price']),
@@ -56,7 +55,7 @@ class ExpenseController extends Controller
                     'total' => $itemData['quantity'] * $itemData['price'],
                 ]);
             }
-      //  }
+
         return redirect()->route('expenses.index')->with('success', 'Расход добавлен!');
     }
 
