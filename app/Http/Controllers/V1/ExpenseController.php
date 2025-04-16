@@ -29,6 +29,7 @@ class ExpenseController extends Controller
      */
     public function create()
     {
+        //dd('dfgdfgfd');
         return view('expenses.create');
     }
 
@@ -37,11 +38,40 @@ class ExpenseController extends Controller
      */
     public function store(StoreExpenseRequest $request)
     {
-               $validated = $request->validated();
+       // dd('dfgdfgfd');
+
+        /*$date = $request->input('date'); // Получить 'date'
+        $comment = $request->input('comment'); // Получить 'comment'
+        $items = $request->input('items'); // Получить массив 'items'*/
+
+        // Используем значения
+       /* $quantity = $items['quantity']; // 1
+        $price = $items['price']; // 3
+        $total = $items['total']; // 3*/
+
+      //echo  dd(1234567);
+               $data= $request->validated();
+        //dd($data);
 
 
-        $expense = Auth::user()->expenses()->create([
+        //$expense = Auth::user()->expenses()->create([
+        //$us = Auth::user();
+        //dd($us->getAuthIdentifier());
+        //dd($expense);
+        if(Auth::user()) {
+            /*$expense = new Expense();
+            $expense->create([*/
+                Expense::create([
+               // 'user_id' => Auth::user()->getAuthIdentifier(),
+                'user_id' => Auth::user()->id,
+                'date' => $data['date'],
+                'comment' => $data['comment'],
+                'amount' => $data['items']['quantity'] * $data['items']['price'],
+                // 'amount' => collect($validated['items'])->sum(fn($item) => $item['quantity'] * $item['price']),
+            ]);
+           // dd(storage_path());
 
+            /*expenses()->create([
                 'date' => $validated['date'],
                 'comment' => $validated['comment'],
                 'amount' => collect($validated['items'])->sum(fn($item) => $item['quantity'] * $item['price']),
@@ -54,8 +84,8 @@ class ExpenseController extends Controller
                     'price' => $itemData['price'],
                     'total' => $itemData['quantity'] * $itemData['price'],
                 ]);
-            }
-
+            }*/
+        }
         return redirect()->route('expenses.index')->with('success', 'Расход добавлен!');
     }
 
