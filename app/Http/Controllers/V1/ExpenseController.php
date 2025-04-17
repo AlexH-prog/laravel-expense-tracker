@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\V1;
 
+use App\Http\Controllers\Controller;
 use App\Models\Expense;
-use App\Http\Requests\StoreExpenseRequest;
-use App\Http\Requests\UpdateExpenseRequest;
+use App\Http\Requests\V1\StoreExpenseRequest;
+use App\Http\Requests\V1\UpdateExpenseRequest;
 use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class ExpenseController extends Controller
     public function index()
     {
         $expenses = Expense::with('items')->get();
-        return view('expenses.index', compact('expenses'));
+        return view('expenses.v1expenses.index', compact('expenses'));
     }
 
     /**
@@ -29,8 +30,7 @@ class ExpenseController extends Controller
      */
     public function create()
     {
-        //dd('dfgdfgfd');
-        return view('expenses.create');
+        return view('expenses.v1expenses.create');
     }
 
     /**
@@ -38,56 +38,30 @@ class ExpenseController extends Controller
      */
     public function store(StoreExpenseRequest $request)
     {
-       // dd('dfgdfgfd');
+        $validated = $request->validated();
+        //dd($validated);
+        //dd($validated[$items['quantity']]);
 
-        /*$date = $request->input('date'); // Получить 'date'
-        $comment = $request->input('comment'); // Получить 'comment'
-        $items = $request->input('items'); // Получить массив 'items'*/
+        $expense = Auth::user()->expenses()->create([
+            'date' => $validated['date'],
+            'comment' => $validated['comment'],
+            //'amount' => $validated[[2 =>'items']['quantity']] * $validated[[2][1]],
+            'amount' => collect($validated['items'])->sum(fn($item) => $item['quantity'] * $item['price']),
+        ]);
 
-        // Используем значения
-       /* $quantity = $items['quantity']; // 1
-        $price = $items['price']; // 3
-        $total = $items['total']; // 3*/
-
-      //echo  dd(1234567);
-               $data= $request->validated();
-        //dd($data);
-
-
-        //$expense = Auth::user()->expenses()->create([
-        //$us = Auth::user();
-        //dd($us->getAuthIdentifier());
-        //dd($expense);
-        if(Auth::user()) {
-            /*$expense = new Expense();
-            $expense->create([*/
-                Expense::create([
-               // 'user_id' => Auth::user()->getAuthIdentifier(),
-                'user_id' => Auth::user()->id,
-                'date' => $data['date'],
-                'comment' => $data['comment'],
-                'amount' => $data['items']['quantity'] * $data['items']['price'],
-                // 'amount' => collect($validated['items'])->sum(fn($item) => $item['quantity'] * $item['price']),
+        foreach ($validated['items'] as $itemData) {
+            $expense->items()->create([
+                'category' => $itemData['category'],
+                'quantity' => $itemData['quantity'],
+                'price' => $itemData['price'],
+                'total' => $itemData['quantity'] * $itemData['price'],
             ]);
-           // dd(storage_path());
-
-            /*expenses()->create([
-                'date' => $validated['date'],
-                'comment' => $validated['comment'],
-                'amount' => collect($validated['items'])->sum(fn($item) => $item['quantity'] * $item['price']),
-            ]);
-
-            foreach ($validated['items'] as $itemData) {
-                $expense->items()->create([
-                    'category' => $itemData['category'],
-                    'quantity' => $itemData['quantity'],
-                    'price' => $itemData['price'],
-                    'total' => $itemData['quantity'] * $itemData['price'],
-                ]);
-            }*/
         }
-        return redirect()->route('expenses.index')->with('success', 'Расход добавлен!');
+
+        return redirect()->route('v1expenses.index')->with('success', 'Расход добавлен!');
     }
+
+
 
     /**
      * Display the specified resource.
@@ -102,19 +76,21 @@ class ExpenseController extends Controller
      */
     public function edit(Expense $expense)
     {
-        $this->authorize('update', $expense);
-        return view('expenses.edit', compact('expense'));
+       // if(Auth::user()) {
+            //$this->authorize('update', $expense);
+            return view('expenses.v1expenses.edit', compact('expense'));
+        /*}
+        return view('welcome');*/
     }
 
     /**
      * Update the specified resource in storage.
      */
-//    public function update(Request $request, string $id)
+   // public function update(Request $request, string $id)
 
         public function update(UpdateExpenseRequest $request, Expense $expense)
         {
-            $this->authorize('update', $expense);
-
+            //$this->authorize('update', $expense);
             $validated = $request->validated();
 
             $expense->update([
@@ -123,7 +99,7 @@ class ExpenseController extends Controller
                 'amount' => collect($validated['items'])->sum(fn($item) => $item['quantity'] * $item['price']),
             ]);
 
-            $expense->items()->delete();
+            //$expense->items()->delete();
             foreach ($validated['items'] as $itemData) {
                 $expense->items()->create([
                     'category' => $itemData['category'],
@@ -132,8 +108,7 @@ class ExpenseController extends Controller
                     'total' => $itemData['quantity'] * $itemData['price'],
                 ]);
             }
-
-            return redirect()->route('expenses.index')->with('success', 'Расход обновлен!');
+            return redirect()->route('v1expenses.index')->with('success', 'Расход добавлен!');
         }
 
 
