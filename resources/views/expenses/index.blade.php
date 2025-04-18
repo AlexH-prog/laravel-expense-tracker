@@ -4,13 +4,27 @@
 
     <h1 class=" text-2xl font-bold mb-6 text-center">Списки расходов</h1>
 
+    {{--<a href="{{ route('general-expenses.create') }}" class=" ">Register</a> <a href="{{ route('general-expenses.create') }}" class=" ">Login</a>
+    <a href="{{ route('general-expenses.create') }}" class=" ">Log Out</a>--}}
+
     @auth
-        {{--<a href="{{ route('general-expenses.create') }}" class=" mt-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">Добавить список</a>--}}
-        <a href="{{ route('general-expenses.create') }}" class=" mt-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">Добавить список</a>
+        <div class="flex justify-between items-center mb-4">
+
+            <p><strong>User:</strong> <span class="text-blue-500">{{ Auth::user()->name }}</span> {{--<a href="{{ view('expenses.create-item') }}" class=" ">Log Out</a>--}}</p>
+
+            <a href="{{ route('general-expenses.create') }}" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 font-bold">
+                Добавить список
+            </a>
+
+        </div>
     @endauth
 
 
-    @foreach($expenses as $expense)
+    @if(Auth::user()!== null)
+
+
+    @endif
+        @foreach($expenses as $expense)
         <!-- Общие данные -->
         <div class="mt-7 mb-1 p-4 bg-gray-100 rounded-lg shadow-md">
             <p><strong>ID: </strong> {{ $expense->id }}   @if(Auth::user()!== null)  @if(Auth::user()->id == $expense->user_id) <strong>User: </strong><span style="color: blue;">{{ Auth::user()->name }}</span>@endif  @endif </p>
