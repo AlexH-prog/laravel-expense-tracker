@@ -1,9 +1,9 @@
-@extends('layouts.expense')
+@extends('layouts.v1expense')
 
 @section('content')
     <h1 class="text-2xl font-bold mb-6">Редактировать расход</h1>
 
-    <form action="{{ route('expenses.update', $expense->id) }}" method="POST" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
+    <form action="{{ route('v1expenses.update', $expense->id) }}" method="POST" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
         @csrf
         @method('PUT')
 

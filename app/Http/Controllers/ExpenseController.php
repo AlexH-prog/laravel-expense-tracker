@@ -3,115 +3,121 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expense;
-use App\Http\Requests\StoreExpenseRequest;
-use App\Http\Requests\UpdateExpenseRequest;
+use App\Models\ExpenseItem;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth')->except('index');
-    }
-    /**
-     * Display a listing of the resource.
-     */
+    // Метод для отображения списка всех расходов
     public function index()
     {
         $expenses = Expense::with('items')->get();
         return view('expenses.index', compact('expenses'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    // ------------------------- Общие данные ------------------------- //
+
+    // Метод для создания общих данных расхода
+    public function createGeneral()
     {
-        return view('expenses.create');
+        return view('expenses.create-general');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreExpenseRequest $request)
+    public function storeGeneral(Request $request)
     {
-               $validated = $request->validated();
-
+        $validated = $request->validate([
+            'date' => 'required|date',
+            'comment' => 'nullable|string|max:255',
+        ]);
 
         $expense = Auth::user()->expenses()->create([
+            'date' => $validated['date'],
+            'comment' => $validated['comment'],
+            'amount' => 0, // Пустая сумма для начала
+        ]);
 
-                'date' => $validated['date'],
-                'comment' => $validated['comment'],
-                'amount' => collect($validated['items'])->sum(fn($item) => $item['quantity'] * $item['price']),
-            ]);
-
-            foreach ($validated['items'] as $itemData) {
-                $expense->items()->create([
-                    'category' => $itemData['category'],
-                    'quantity' => $itemData['quantity'],
-                    'price' => $itemData['price'],
-                    'total' => $itemData['quantity'] * $itemData['price'],
-                ]);
-            }
-
-        return redirect()->route('expenses.index')->with('success', 'Расход добавлен!');
+        return redirect()->route('expenses.index')->with('success', 'Общие данные расхода успешно созданы!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Expense $expense)
+    // Метод для редактирования общих данных расхода
+    public function editGeneral(Expense $expense)
     {
         $this->authorize('update', $expense);
-        return view('expenses.edit', compact('expense'));
+        return view('expenses.edit-general', compact('expense'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-//    public function update(Request $request, string $id)
-
-        public function update(UpdateExpenseRequest $request, Expense $expense)
-        {
-            $this->authorize('update', $expense);
-
-            $validated = $request->validated();
-
-            $expense->update([
-                'date' => $validated['date'],
-                'comment' => $validated['comment'],
-                'amount' => collect($validated['items'])->sum(fn($item) => $item['quantity'] * $item['price']),
-            ]);
-
-            $expense->items()->delete();
-            foreach ($validated['items'] as $itemData) {
-                $expense->items()->create([
-                    'category' => $itemData['category'],
-                    'quantity' => $itemData['quantity'],
-                    'price' => $itemData['price'],
-                    'total' => $itemData['quantity'] * $itemData['price'],
-                ]);
-            }
-
-            return redirect()->route('expenses.index')->with('success', 'Расход обновлен!');
-        }
-
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function updateGeneral(Request $request, Expense $expense)
     {
-        //
+        $this->authorize('update', $expense);
+
+        $validated = $request->validate([
+            'date' => 'required|date',
+            'comment' => 'nullable|string|max:255',
+        ]);
+
+        $expense->update($validated);
+
+        return redirect()->route('expenses.index')->with('success', 'Общие данные расхода успешно обновлены!');
+    }
+
+    // ------------------------- Статьи расходов ------------------------- //
+
+    // Метод для создания новой статьи расхода
+    public function createItem(Expense $expense)
+    {
+        return view('expenses.create-item', compact('expense'));
+    }
+
+    public function storeItem(Request $request, Expense $expense)
+    {
+        $validated = $request->validate([
+            'category' => 'required|string|max:255',
+            'quantity' => 'required|integer|min:1',
+            'price' => 'required|numeric|min:0',
+        ]);
+
+        $validated['total'] = $validated['quantity'] * $validated['price'];
+
+        $expense->items()->create($validated);
+
+        // Обновляем общую сумму в общих данных
+        $expense->update([
+            'amount' => $expense->items->sum('total'),
+        ]);
+
+        return redirect()->route('expenses.index')->with('success', 'Статья расхода успешно добавлена!');
+    }
+
+    // Метод для редактирования статьи расхода
+    public function editItem(ExpenseItem $expenseItem)
+    {
+        //dd($expenseItem);
+        //dd($expenseItem->expense);
+        $this->authorize('update', $expenseItem->expense);
+        return view('expenses.edit-item', compact('expenseItem'));
+    }
+
+    public function updateItem(Request $request, ExpenseItem $expenseItem)
+    {
+        $this->authorize('update', $expenseItem->expense);
+
+        $validated = $request->validate([
+            'category' => 'required|string|max:255',
+            'quantity' => 'required|integer|min:1',
+            'price' => 'required|numeric|min:0',
+        ]);
+
+        $validated['total'] = $validated['quantity'] * $validated['price'];
+
+        $expenseItem->update($validated);
+
+        // Обновляем общую сумму в общих данных
+        $expenseItem->expense->update([
+            'amount' => $expenseItem->expense->items->sum('total'),
+        ]);
+
+        return redirect()->route('expenses.index')->with('success', 'Статья расхода успешно обновлена!');
     }
 }
